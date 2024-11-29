@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
-import { fal } from "@fal-ai/client";
+import { FalClient } from "@fal-ai/client";
 
 export async function GET() {
   try {
+    // Initialize the FalClient with the API key
+    const apiKey = process.env.FAL_API_KEY;
+    if (!apiKey) {
+      throw new Error("Missing FAL_API_KEY environment variable");
+    }
+    const fal = new FalClient(apiKey);
+
     // Initiate the workflow
     const stream = await fal.stream("workflows/bakursky/landscape-image-generation", {
       input: {}
