@@ -1,8 +1,8 @@
 // app/api/generate-image/route.js
-import { Fal } from "fal-js";
+import { fal } from "@fal-ai/client";
 
 // Configure Fal.ai client
-Fal.initialize({
+fal.config({
   credentials: process.env.FAL_API_KEY
 });
 
@@ -12,7 +12,7 @@ const WORKFLOW_ID = 'bakursky/landscape-image-generation';
 export async function GET() {
   try {
     // Execute the Fal.ai workflow
-    const result = await Fal.run(WORKFLOW_ID, {
+    const result = await fal.run(WORKFLOW_ID, {
       // Add any required input parameters for your specific workflow
       // Example: 
       // input: {
@@ -35,7 +35,8 @@ export async function GET() {
   } catch (error) {
     console.error('Image generation failed:', error);
     return new Response(JSON.stringify({ 
-      error: 'Failed to generate image' 
+      error: 'Failed to generate image',
+      details: error.message
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
