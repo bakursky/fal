@@ -1,6 +1,8 @@
 {
-    "crons": [{
-      "path": "/api/generate-image",
+  "crons": [
+    {
+      "path": "/api/generate-daily-background",
       "schedule": "0 0 * * *"
-    }]
-  }
+    }
+  ]
+}
