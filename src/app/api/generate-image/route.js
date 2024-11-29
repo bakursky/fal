@@ -1,45 +1,39 @@
-// app/api/generate-image/route.js
+// app/api/generate-image/route.ts
 import { fal } from "@fal-ai/client";
-
-// Configure Fal.ai client
-fal.config({
-  credentials: process.env.FAL_API_KEY
-});
-
-// Workflow ID from the provided link
-const WORKFLOW_ID = 'bakursky/landscape-image-generation';
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Execute the Fal.ai workflow
-    const result = await fal.run(WORKFLOW_ID, {
-      // Add any required input parameters for your specific workflow
-      // Example: 
-      // input: {
-      //   prompt: "A beautiful landscape at sunset",
-      //   width: 1024,
-      //   height: 768
-      // }
+    // Configure fal.ai client (ensure you've set FAL_API_KEY in your environment)
+    fal.config({
+      apiKey: process.env.FAL_API_KEY
     });
 
-    // Log the generated image URL
-    console.log('Generated Image URL:', result.images[0].url);
-
-    // Return the image URL in the response
-    return new Response(JSON.stringify({ 
-      imageUrl: result.images[0].url 
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
+    // Stream the workflow
+    const stream = await fal.stream("workflows/bakursky/landscape-image-generation", {
+      input: {} // Add any specific input parameters if required
     });
+
+    // Collect the final result
+    const result = await stream.done();
+
+    // Log the image URL (assuming the result contains an image URL)
+    console.log('Generated Image URL:', result.image?.url);
+
+    // Optionally, you can save the image URL to a database or perform other actions
+    return NextResponse.json({ 
+      success: true, 
+      imageUrl: result.image?.url 
+    });
+
   } catch (error) {
-    console.error('Image generation failed:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to generate image',
-      details: error.message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error('Image generation error:', error);
+    return NextResponse.json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    }, { status: 500 });
   }
 }
+
+// Ensure this route is not cached
+export const dynamic = 'force-dynamic';
