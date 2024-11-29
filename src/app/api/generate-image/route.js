@@ -1,39 +1,32 @@
-// app/api/generate-image/route.ts
+import { NextResponse } from "next/server";
 import { fal } from "@fal-ai/client";
-import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Configure fal.ai client (ensure you've set FAL_API_KEY in your environment)
-    const fal = new FalClient(process.env.FAL_API_KEY); 
-
-    // Stream the workflow
+    // Initiate the workflow
     const stream = await fal.stream("workflows/bakursky/landscape-image-generation", {
-      input: {} // Add any specific input parameters if required
+      input: {}
     });
 
-    // Collect the final result
-    const result = await stream.done();
+    // Collect the stream output
+    let imageLink = "";
+    for await (const event of stream) {
+      console.log(event); // Log event for debugging
+      if (event.type === "output" && event.data.link) {
+        imageLink = event.data.link;
+      }
+    }
 
-    // Log the image URL (assuming the result contains an image URL)
-    console.log('Generated Image URL:', result.image?.url);
+    // Ensure stream is done
+    await stream.done();
 
-    // Optionally, you can save the image URL to a database or perform other actions
-    return NextResponse.json({ 
-      success: true, 
-      imageUrl: result.image?.url 
-    });
+    // Log the result
+    console.log("Generated Image Link:", imageLink);
 
+    // Return the image link
+    return NextResponse.json({ message: "Image generated successfully", imageLink });
   } catch (error) {
-    console.error('Image generation error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }, { status: 500 });
+    console.error("Error generating image:", error);
+    return NextResponse.json({ error: "Failed to generate image" }, { status: 500 });
   }
 }
-
-// Ensure this route is not cached
-export const dynamic = 'force-dynamic';
-
-
