@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 async function DailyBackground() {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-daily-background`, { 
-      // next: { revalidate: 86400 } // 24 hours
+      next: { revalidate: 86400 } // 24 hours
     });
     
     if (!res.ok) {
